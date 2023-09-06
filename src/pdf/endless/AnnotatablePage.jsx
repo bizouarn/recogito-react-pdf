@@ -5,6 +5,8 @@ import { Annotorious } from '@recogito/annotorious/src';
 
 import { extendTarget, splitByType } from '../PDFAnnotation';
 
+import RubberbandEllipseTool from '@recogito/annotorious-selector-pack/src/ellipse/RubberbandEllipseTool';
+
 const AnnotatablePage = props => {
 
   const containerEl = useRef();
@@ -76,6 +78,11 @@ const AnnotatablePage = props => {
       if (props.annotationMode === 'IMAGE') {
         if (imageLayer)
           imageLayer.style.pointerEvents = 'auto';
+        anno.setDrawingTool('rect');
+      } else if(props.annotationMode === 'ELLIPSE') {
+        if (imageLayer)
+          imageLayer.style.pointerEvents = 'auto';
+        anno.setDrawingTool('ellipse');
       } else if (props.annotationMode === 'ANNOTATION') {
         if (imageLayer)
           imageLayer.style.pointerEvents = null;
@@ -118,7 +125,8 @@ const AnnotatablePage = props => {
 
     const anno = new Annotorious({
       ...config,
-      image: containerEl.current.querySelector('.imageLayer')
+      image: containerEl.current.querySelector('.imageLayer'),
+      allowEmpty: true
     });
 
     anno.on('createAnnotation', onCreateAnnotation);
@@ -136,9 +144,11 @@ const AnnotatablePage = props => {
     // wait time until Recogito/Annotorious inits are complete.
     const init = () => {
       if (r._app.current && anno._app.current) {
+        anno.disableEditor = !anno.disableEditor;
         r.setAnnotations(text);
         anno.setAnnotations(image);   
-        setMode(r);   
+        anno.addDrawingTool(RubberbandEllipseTool);   
+        setMode(r);
       } else {
         setTimeout(() => init(), 50);
       }

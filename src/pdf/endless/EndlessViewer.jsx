@@ -26,6 +26,10 @@ const EndlessViewer = props => {
     else
       setAnnotationMode('IMAGE');
   }
+
+  const onToggleEllipseMode = () => {
+    setAnnotationMode('ELLIPSE');
+  }
   
   return (
     <div>
@@ -49,6 +53,13 @@ const EndlessViewer = props => {
           onClick={onToggleImageMode}>
           <span className="inner">
             <RiImageEditFill />
+          </span>
+        </button>
+        <button
+          className={annotationMode === 'ELLIPSE' ? 'active' : null} 
+          onClick={onToggleEllipseMode}>
+          <span className="inner">
+            E
           </span>
         </button>
       </header>

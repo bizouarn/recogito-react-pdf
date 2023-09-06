@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CgDebug, CgChevronLeft, CgChevronRight, CgArrowsExpandDownRight } from 'react-icons/cg';
 import { RiImageEditFill } from 'react-icons/ri';
 
-import AnnotatablePage from './AnnotatablePage';
+import AnnotatablePage from '../endless/AnnotatablePage';
 import { extendTarget } from '../PDFAnnotation';
 
 const PaginatedViewer = props => {
