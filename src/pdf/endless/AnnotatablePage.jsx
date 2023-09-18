@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as PDFJS from 'pdfjs-dist/legacy/build/pdf';
-import { Recogito } from '@recogito/recogito-js/src';
 import { Annotorious } from '@recogito/annotorious/src';
 
 import { extendTarget, splitByType } from '../PDFAnnotation';
@@ -15,8 +14,7 @@ const AnnotatablePage = props => {
   const [ isRendered, setRendered ] = useState(false);
 
   const [ anno, setAnno ] = useState();
-
-  const [ recogito, setRecogito ] = useState();
+  const [ tools, setTools ] = useState();
 
   // Renders the PDF page, returning a promise
   const renderPage = () => {
@@ -71,28 +69,14 @@ const AnnotatablePage = props => {
     props.onDeleteAnnotation(extended)
   }
 
-  const setMode = recogito => {
+  const setMode = () => {
     if (pageVisible) {
       const imageLayer = containerEl.current.querySelector('svg.a9s-annotationlayer');
-
-      if (props.annotationMode === 'IMAGE') {
-        if (imageLayer)
-          imageLayer.style.pointerEvents = 'auto';
-        anno.setDrawingTool('rect');
-      } else if(props.annotationMode === 'ELLIPSE') {
-        if (imageLayer)
-          imageLayer.style.pointerEvents = 'auto';
-        anno.setDrawingTool('ellipse');
-      } else if (props.annotationMode === 'ANNOTATION') {
-        if (imageLayer)
-          imageLayer.style.pointerEvents = null;
-        
-          recogito.setMode('ANNOTATION');
-      } else if (props.annotationMode === 'RELATIONS') {
-        if (imageLayer)
-          imageLayer.style.pointerEvents = null;
-        
-        recogito.setMode('RELATIONS');
+      imageLayer.style.pointerEvents = 'auto';
+      if(anno != null && props.annotationMode && props.annotationMode != '') {
+        anno.setDrawingTool(props.annotationMode);
+      } else {
+        imageLayer.style.pointerEvents = null;
       }
     }
   }
@@ -103,25 +87,6 @@ const AnnotatablePage = props => {
     const config = props.config || {};
 
     const { text, image } = splitByType(props.store.getAnnotations(props.page));
-
-    const r = new Recogito({ 
-      ...config,
-      content: containerEl.current.querySelector('.textLayer'), 
-      mode: 'pre' 
-    });
-
-    // Init Recogito Connections plugin
-    props.connections.register(r);
-
-    props.connections.on('createConnection', onCreateAnnotation);
-    props.connections.on('updateConnection', onUpdateAnnotation);  
-    props.connections.on('deleteConnection', onDeleteAnnotation);
-
-    r.on('createAnnotation', onCreateAnnotation);
-    r.on('updateAnnotation', onUpdateAnnotation);
-    r.on('deleteAnnotation', onDeleteAnnotation);
-    r.on('cancelSelected', a => props.onCancelSelected(a));
-    setRecogito(r);
 
     const anno = new Annotorious({
       ...config,
@@ -136,19 +101,17 @@ const AnnotatablePage = props => {
     
     setAnno(anno);
 
-    r.on('selectAnnotation', () => anno.selectAnnotation());
-    anno.on('selectAnnotation', () => r.selectAnnotation());
-
     // For some reason, React is not done initializing the Image-/TextAnnotators.
     // This remains an unsolved mystery for now. The hack is to introduce a little
     // wait time until Recogito/Annotorious inits are complete.
     const init = () => {
-      if (r._app.current && anno._app.current) {
+      if (anno._app.current) {
         anno.disableEditor = !anno.disableEditor;
-        r.setAnnotations(text);
-        anno.setAnnotations(image);   
-        anno.addDrawingTool(RubberbandEllipseTool);   
-        setMode(r);
+        anno.setAnnotations(image);
+        anno.addDrawingTool(RubberbandEllipseTool);
+        setMode();
+        var tools = anno.listDrawingTools();
+        props.setTools(tools);
       } else {
         setTimeout(() => init(), 50);
       }
@@ -158,15 +121,8 @@ const AnnotatablePage = props => {
   }
 
   const destroyAnnotationLayer = () => {
-    if (recogito || anno)
-      console.log('Destroying annotation layer on page ' + props.page);
-
-    if (recogito) {
-      props.connections.unregister(recogito);
-      recogito.destroy();
-    }
-
     if (anno) {
+      console.log('Destroying annotation layer on page ' + props.page);
       anno.destroy();
     }
   }
@@ -206,13 +162,13 @@ const AnnotatablePage = props => {
   }, [ isRendered, pageVisible ]);
 
   useEffect(() => {
-    setMode(recogito);
+    setMode();
   }, [ props.annotationMode ])
 
   return (
     <div
       ref={containerEl} 
-      className={props.debug ? 'page-container debug' : 'page-container'}>
+      className="page-container">
       <div className="textLayer" />
     </div>
   )

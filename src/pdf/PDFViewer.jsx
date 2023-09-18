@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import * as PDFJS from 'pdfjs-dist/legacy/build/pdf';
-import Connections from '@recogito/recogito-connections';
 
 import EndlessViewer from './endless/EndlessViewer';
 import PaginatedViewer from './paginated/PaginatedViewer';
 import Store from './AnnotationStore';
 
 import 'pdfjs-dist/web/pdf_viewer.css';
-import '@recogito/recogito-js/dist/recogito.min.css';
 import '@recogito/annotorious/dist/annotorious.min.css';
 import './PDFViewer.css';
 
@@ -17,26 +15,15 @@ const PDFViewer = props => {
 
   const [ pdf, setPdf ] = useState();
 
-  const [ connections, setConnections ] = useState();
-
   // Load PDF on mount
   useEffect(() => {
-    // Init after DOM load
-    const conn = new Connections([], { 
-      showLabels: true,
-      vocabulary: props.config.relationVocabulary
-    });
-
-    setConnections(conn);
-
-    PDFJS.getDocument(props.url).promise
-      .then(
-        pdf => setPdf(pdf), 
-        error => console.error(error)
-      );
-
-    // Destroy connections layer on unmount
-    return () => conn.destroy();
+  
+  // Init after DOM load
+  PDFJS.getDocument(props.url).promise
+    .then(
+      pdf => setPdf(pdf), 
+      error => console.error(error)
+    );
   }, []);
 
   useEffect(() => {
@@ -68,7 +55,6 @@ const PDFViewer = props => {
         {...props}
         pdf={pdf}
         store={store}
-        connections={connections}
         onCreateAnnotation={onCreateAnnotation}
         onUpdateAnnotation={onUpdateAnnotation}
         onDeleteAnnotation={onDeleteAnnotation} 
@@ -78,7 +64,6 @@ const PDFViewer = props => {
         {...props}
         pdf={pdf}
         store={store}
-        connections={connections}
         onCreateAnnotation={onCreateAnnotation}
         onUpdateAnnotation={onUpdateAnnotation}
         onDeleteAnnotation={onDeleteAnnotation} 

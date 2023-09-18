@@ -30,11 +30,6 @@ const App = () => {
 }
 
 window.onload = function() {
-
-  ReactDOM.render(
-    <App />,
-    document.getElementById('app')
-  );
-    
+  ReactDOM.render(<App />, document.getElementById('app'));
 }
 
